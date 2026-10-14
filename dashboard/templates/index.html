@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>G8 Lab | Controle PID</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/theme.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="G8 Control, início">
+        <span class="brandicon" aria-hidden="true">∿</span>
+        <span><strong>G8 CONTROL</strong><small>Laboratório PID · C13</small></span>
+      </a>
+      <div class="overline">WORKSPACE</div>
+      <nav aria-label="Navegação principal">
+        <button class="nav active" data-tab="overview">◫ <span>Visão geral</span></button>
+        <button class="nav" data-tab="identify">⌁ <span>Identificação</span></button>
+        <button class="nav" data-tab="pid">▤ <span>Controle PID</span></button>
+        <button class="nav" data-tab="compare">◷ <span>Comparativo</span></button>
+        <button class="nav" data-tab="docs">▥ <span>Documentação</span></button>
+      </nav>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <h1 id="page-title">Visão geral</h1>
+        </div>
+        <div class="top-actions">
+          <span class="pill" id="api-badge">● Conectando à API</span>
+          <button class="upload" id="download-data" type="button" title="Simule o controle para habilitar o download dos dados em CSV" disabled>↓ Baixar dados</button>
+          <label class="upload">↑ Importar .mat
+            <input accept=".mat" hidden id="dataset-file" type="file">
+          </label>
+        </div>
+      </header>
+      <div class="alert hidden" id="alert" role="status" aria-live="polite"></div>
+
+      <section class="page" id="overview">
+        <div class="stats">
+          <div class="stat"><span>Amostras do dataset</span><strong id="stat-samples">—</strong><small>Dados experimentais</small></div>
+          <div class="stat"><span>Melhor identificação</span><strong id="stat-best">—</strong><small>Menor RMSE</small></div>
+          <div class="stat"><span>Ganho k</span><strong id="stat-k">—</strong><small>Modelo selecionado</small></div>
+          <div class="stat"><span>Atraso θ</span><strong id="stat-theta">—</strong><small>Tempo morto (s)</small></div>
+        </div>
+        <div class="cols">
+          <section class="panel">
+            <div class="panel-head"><div><div class="eyebrow">DADOS REAIS</div><h3>Resposta experimental e modelo</h3></div><span class="tag">FOPDT</span></div>
+            <div class="chart" id="overview-chart"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><div><div class="eyebrow">FLUXO DE TRABALHO</div><h3>Pipeline de análise</h3></div></div>
+            <div class="pipeline">
+              <div><span>01</span><b>Carregar dataset</b><small>Arquivo .mat do ensaio</small></div>
+              <div><span>02</span><b>Identificar planta</b><small>Smith / Sundaresan</small></div>
+              <div><span>03</span><b>Sintonizar controlador</b><small>Técnica 4: CHR com sobrevalor / Técnica 5: Cohen-Coon</small></div>
+              <div><span>04</span><b>Analisar resultados</b><small>Subida, acomodação e overshoot</small></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="page hidden" id="identify">
+        <div class="sectionbar"><div><h2>Identificação de sistemas</h2><p>Modelos de Smith e Sundaresan, com ajuste fino e comparação por RMSE.</p></div><span class="tag">Modelo FOPDT</span></div>
+        <div class="cols two">
+          <section class="panel"><div class="panel-head"><h3>Parâmetros identificados</h3><span class="tag">Menor RMSE destacado</span></div><div id="model-table"></div></section>
+          <section class="panel"><div class="panel-head"><h3>Dados do ensaio</h3></div><div id="base-table"></div><p class="footnote">H(s) = k · e<sup>−θs</sup> / (τs + 1)</p></section>
+        </div>
+        <section class="panel"><div class="panel-head"><div><div class="eyebrow">COMPARAÇÃO DE CURVAS</div><h3>Saída experimental × estimativas</h3></div><button class="secondary" data-go="pid">Ir para controle →</button></div><div class="chart tall" id="identify-chart"></div></section>
+      </section>
+
+      <section class="page hidden" id="pid">
+        <div class="sectionbar"><div><h2>Simulador de controle PID</h2><p>Altere o SetPoint, selecione a identificação e compare sintonia automática ou manual.</p></div><span class="tag">IHM · Simulação linear</span></div>
+        <div class="controls-layout">
+          <section class="panel config">
+            <h3>Parâmetros de simulação</h3>
+            <label>Modelo de identificação
+              <select id="model"><option value="melhor">Melhor RMSE (automático)</option><option value="Smith">Smith</option><option value="Sundaresan">Sundaresan</option><option value="Ajuste fino">Ajuste fino</option></select>
+            </label>
+            <label>Modo de sintonia
+              <select id="method"><option value="CHR 20%">Técnica 4 — CHR com sobrevalor (20%)</option><option value="Cohen-Coon">Técnica 5 — Cohen-Coon</option><option>Manual</option></select>
+            </label>
+            <label>SetPoint (unidade do dataset)<input id="setpoint" placeholder="Valor final original do dataset" step="any" type="number"></label>
+            <div class="triple">
+              <label>Kp<input disabled id="kp" step="any" type="number"></label>
+              <label>Ti (s)<input disabled id="ti" step="any" type="number"></label>
+              <label>Td (s)<input disabled id="td" step="any" type="number"></label>
+            </div>
+            <div class="triple">
+              <label>Duração (s)<input id="duration" max="2000" min="1" type="number" value="400"></label>
+              <label>Δt (s)<input id="dt" min="0.01" step="0.1" type="number" value="0.5"></label>
+              <label>Padé<select id="pade"><option value="1">1ª ordem</option><option value="3">3ª ordem</option><option selected value="5">5ª ordem</option></select></label>
+            </div>
+            <button class="primary full" id="simulate">▶ Simular controle</button>
+            <p class="footnote">A estabilidade é verificada antes da resposta. A simulação não modela saturação física do atuador ou da pressão.</p>
+          </section>
+          <div class="right-stack">
+            <div class="stats two-up">
+              <div class="stat"><span>Tempo de subida</span><strong id="pid-rise">—</strong><small>10% a 90%</small></div>
+              <div class="stat"><span>Tempo de acomodação</span><strong id="pid-settle">—</strong><small>Banda ±2%</small></div>
+              <div class="stat"><span>Overshoot</span><strong id="pid-overshoot">—</strong><small>Ultrapassagem percentual</small></div>
+              <div class="stat"><span>Erro final</span><strong id="pid-error">—</strong><small>Referência − saída final</small></div>
+            </div>
+            <section class="panel"><div class="panel-head"><div><div class="eyebrow">MALHAS DE CONTROLE</div><h3>Resposta temporal</h3></div><div class="top-actions"><span class="pill" id="stable-badge">Aguardando simulação</span><button class="secondary" id="export-chart" type="button" disabled>Salvar gráfico</button></div></div><div class="chart tall" id="pid-chart"></div></section>
+          </div>
+        </div>
+      </section>
+
+      <section class="page hidden" id="compare">
+        <div class="sectionbar"><div><h2>Análise comparativa</h2><p>Grupo 8 · menor tempo de resposta entre as Técnicas 4 e 5.</p></div><button class="secondary" id="refresh-compare">↻ Recalcular</button></div>
+        <div class="stats two-up"><div class="stat"><span>Menor tempo de subida (10–90%)</span><strong id="winner-rise">—</strong><small>Métrica complementar</small></div><div class="stat"><span>Menor tempo de acomodação</span><strong id="winner-settle">—</strong><small>Critério de resposta: permanecer na banda de ±2%</small></div></div>
+        <section class="panel"><div class="panel-head"><div><div class="eyebrow">TÉCNICA 4 × TÉCNICA 5</div><h3>CHR com sobrevalor (20%) × Cohen-Coon</h3></div><span class="tag">Grupo 8 · menor tempo de resposta</span></div><div class="chart tall" id="compare-chart"></div></section>
+        <section class="panel"><div class="panel-head"><h3>Indicadores comparativos</h3></div><div id="compare-table"></div></section>
+      </section>
+
+      <section class="page hidden" id="docs">
+        <div class="sectionbar"><div><h2>Documentação da IHM</h2><p>Como carregar dados e executar as simulações.</p></div></div>
+        <section class="panel docs">
+          <h3>Fluxo de utilização</h3>
+          <div class="docline"><b>1. Dataset</b><span> O arquivo Pneumatico_G8.mat é carregado automaticamente quando encontrado na pasta do projeto. Use “Importar .mat” para selecionar outro ensaio.</span></div>
+          <div class="docline"><b>2. Identificação</b><span> Veja os modelos de Smith, Sundaresan e ajuste fino. O modelo padrão é o de menor RMSE entre Smith e Sundaresan.</span></div>
+          <div class="docline"><b>3. Controle PID</b><span> O Grupo 8 compara a Técnica 4 (CHR com sobrevalor de 20%) e a Técnica 5 (Cohen-Coon). Defina o SetPoint e os parâmetros; no modo manual, informe Kp, Ti e Td.</span></div>
+          <div class="docline"><b>4. Baixar resultados</b><span>Depois de uma simulação, use “Baixar dados” no cabeçalho para salvar as curvas e o SetPoint em CSV, ou “Salvar gráfico” junto à resposta temporal para baixar a figura em PNG.</span></div>
+          <div class="alert warning"><b>Nota de modelagem:</b> esta IHM executa simulação matemática local. Não controla o cilindro físico nem inclui limites/saturação da válvula.</div>
+        </section>
+      </section>
+
+    </main>
+  </div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
