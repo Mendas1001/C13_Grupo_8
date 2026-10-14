@@ -1,7 +1,7 @@
 # Projeto 1 – Identificação de Processos e Sintonia de PID (Grupo 8)
 
 **Planta:** Cilindro pneumático
-**Métodos de sintonia:** Técnica 2 (IMC) e Técnica 3 (CHR sem sobrevalor)
+**Métodos de sintonia:** Técnica 4 (CHR com Sobrevalor) e Técnica 5 (Cohen e Coon)
 **Desempenho a avaliar:** (a) menor tempo de resposta
 
 ## 1. Parte teórica
