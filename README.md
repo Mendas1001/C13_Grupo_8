@@ -1,6 +1,7 @@
 # Projeto 1 – Identificação de Processos e Sintonia de PID (Grupo 8)
 
 **Planta:** Cilindro pneumático
+<<<<<<< HEAD
 **Grupo:** 8
 **Métodos de sintonia:** Técnica 4 (CHR com sobrevalor de 20%) e Técnica 5 (Cohen-Coon)
 **Desempenho a avaliar:** menor tempo de resposta. Neste relatório, o critério principal é o tempo de acomodação (atingir e permanecer na banda de ±2%); o tempo de subida também é informado como métrica complementar.
@@ -32,6 +33,10 @@ python -m pytest -q
 ```
 
 O frontend fica em `dashboard/templates/index.html` e `dashboard/static/`; a API está em `dashboard/server.py`.
+=======
+**Métodos de sintonia:** Técnica 4 (CHR com Sobrevalor) e Técnica 5 (Cohen e Coon)
+**Desempenho a avaliar:** (a) menor tempo de resposta
+>>>>>>> origin/main
 
 ## 1. Parte teórica
 
@@ -91,6 +96,7 @@ Script: [`Identificacao.py`](Identificacao.py)
 
 O método Smith tem o menor RMSE entre os dois métodos clássicos pedidos, por isso é a identificação clássica escolhida para a comparação de sintonia. O ajuste fino opcional reduz ainda mais o RMSE, mas não é uma terceira técnica de sintonia do Grupo 8.
 
+<<<<<<< HEAD
 No ensaio, o degrau ocorre em 20 s, com `Degrau` variando de 0 para 60; a saída varia de aproximadamente 1,1143 para 7,9969 bar. O RMSE quantifica a diferença entre as amostras observadas e a resposta FOPDT estimada; Smith apresenta menor erro que Sundaresan neste conjunto específico.
 
 ## 3. Resultados integrados (itens 4, 5 e 6)
@@ -113,3 +119,6 @@ Resultados calculados para o modelo Smith, SetPoint de 8 bar, horizonte de 400 s
 Os parâmetros e gráficos refletem um modelo linear com atraso aproximado por Padé, sem saturação do atuador, limites físicos de pressão, anti-windup ou dinâmica detalhada da válvula. Os resultados são de simulação e não certificam estabilidade ou segurança de um cilindro físico.
 
 As figuras salvas pelo script do Integrante 2 estão em `resultados2/`: `01_malha_aberta.png`, `02_pid_comparativo.png` e `03_malhas_comparacao.png`.
+=======
+**Análise da aproximação:** _(comentar a figura `resultados/identificacao_comparacao.png`)_
+>>>>>>> origin/main
